@@ -76,5 +76,8 @@ int main() {
 			}
 		}
 	}
+	for(int i = 0; i < M; i++)
+		delete []population[i];
+	delete []population;
 	return EXIT_SUCCESS;
 }
