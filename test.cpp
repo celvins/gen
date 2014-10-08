@@ -70,16 +70,12 @@ int main() {
 					for(int b = 0; b < N; b++){
 						int percent = rand() % 100; //Вероятность мутации
 						if((percent > 0) && (percent <= 20)){
-							cout << "mutatiya" << endl;
 							float mutation = rand() % 5; //Мутация
 							if((rand() % 2) == 1){
-								cout << "\n" << population[i][b] << "\n";
 								population[i][b] += (population[i][b] * (mutation / 100));
-								cout << "+ " << mutation << " " << population[i][b] << endl;
 							}
 							else{
 								population[i][b] -= (population[i][b] * (mutation / 100));
-								cout << "- " << mutation << endl;
 							}
 						}
 						population[k][b] = population[i][b];
