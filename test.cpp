@@ -32,8 +32,7 @@ void puzirek(float * fitness){
 	}
 }
 int main() {
-	int x, percent;
-	float roulette[M][2], sum, mutation;
+	float roulette[M][2];
 
 	float **population = new float*[M];
 	for(int i = 0; i < M; i++)
@@ -42,25 +41,20 @@ int main() {
 	float *fitness = new float[M];
 	srand(time(0));
 
-	//Начальная популяция
-	for(int i = 0; i < M; i++)
+	for(int i = 0; i < M; i++)//Начальная популяция
 		for(int j = 0; j < N; j++)
 			population[i][j] = -200.15 / 15 + rand() % 401;
 
-	//10 поколений
-	for(int j = 0; j < 10; j++){
-		sum = 0;
+	for(int j = 0; j < 10; j++){//10 поколений
+		float sum = 0;
 		printf("Поколение %d\n", j + 1);
 
-		//Значения функции
 		for(int i = 0; i < M; i++){
-			fitness[i] = fun(population[i]);
+			fitness[i] = fun(population[i]);//Значения функции
 			sum += fitness[i];
 		}
-		/*
-		 * Сортировка fitness
-		 */
-		puzirek(fitness);
+
+		puzirek(fitness); //Сортировка
 
 		//Рулетка
 		for(int i = 0; i < M; i++){
@@ -70,14 +64,14 @@ int main() {
 		}
 		//Новая популяция
 		for(int k = 0; k < M; k++){
-			x = rand() % int(sum);
+			int x = rand() % int(sum);
 			for(int i = 0; i < M; i++){
 				if((x >= roulette[i][0]) && (x < roulette[i][1])){
 					for(int b = 0; b < N; b++){
-						percent = rand() % 100; //Вероятность мутации
+						int percent = rand() % 100; //Вероятность мутации
 						if((percent > 0) && (percent <= 20)){
 							cout << "mutatiya" << endl;
-							mutation = rand() % 5; //Мутация
+							float mutation = rand() % 5; //Мутация
 							if((rand() % 2) == 1){
 								cout << "\n" << population[i][b] << "\n";
 								population[i][b] += (population[i][b] * (mutation / 100));
