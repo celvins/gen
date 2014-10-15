@@ -13,7 +13,7 @@
 #define M 100
 using namespace std;
 
-double fun(float * population){
+double fun(double * population){
 	return population[0] - population[1] + pow(population[2], 2);
 }
 void puzirek(float * fitness){
@@ -32,13 +32,13 @@ void puzirek(float * fitness){
 	}
 }
 int main() {
-	float roulette[M][2];
+	double roulette[M][2];
 
-	float **population = new float*[M];
+	double **population = new float*[M];
 	for(int i = 0; i < M; i++)
 		population[i] = new float[N];
 
-	float *fitness = new float[M];
+	double *fitness = new float[M];
 	srand(time(0));
 
 	for(int i = 0; i < M; i++)//Начальная популяция
@@ -46,7 +46,7 @@ int main() {
 			population[i][j] = -200.15 / 15 + rand() % 401;
 
 	for(int j = 0; j < 10; j++){//10 поколений
-		float sum = 0;
+		double sum = 0;
 		printf("Поколение %d\n", j + 1);
 
 		for(int i = 0; i < M; i++){
@@ -70,7 +70,7 @@ int main() {
 					for(int b = 0; b < N; b++){
 						int percent = rand() % 100; //Вероятность мутации
 						if((percent > 0) && (percent <= 20)){
-							float mutation = rand() % 5; //Мутация
+							double mutation = rand() % 5; //Мутация
 							if((rand() % 2) == 1){
 								population[i][b] += (population[i][b] * (mutation / 100));
 							}
