@@ -77,13 +77,15 @@ int main() {
 					for(int b = 0; b < N; b++){
 						int p_mutation = rand() % 100; //Вероятность мутации
 						if((p_mutation > 0) && (p_mutation <= 20)){
-							//cout << "\nмутация " << population[i][b] << " ДО ";
-							double a = population[i][b] - population[i][b] * 5 / 100.0;
-							int c = (int)(population[i][b] + population[i][b] * 5 / 100.0);
-							population[i][b] = a + rand() % (c + 1);
-							//cout << population[i][b];
-							//cout << "\nМутация " << a << " " << c << endl;;
-
+							cout << "\nмутация " << population[i][b] << " ДО ";
+							double a = (population[i][b] - population[i][b] * 5 / 100.0);
+							double c = (int)(population[i][b] + population[i][b] * 5 / 100.0);
+							if(a < c)
+								population[i][b] = a + rand() % ((int)c + 1);
+							else
+								population[i][b] = c + rand() % ((int)a + 1);
+							cout << population[i][b];
+							cout << "\nМутация " << a << " " << c << endl;;
 						}
 						population[k][b] = population[i][b];
 					}
