@@ -9,15 +9,22 @@
 #include <iostream>
 #include <math.h>
 #include <time.h>
+#include <stdlib.h>
 #define N 4
 #define M 100
+#define POPULATION_DOWN -200
+#define POPULATION_UP 400
+#define ALL_P_MUTATION_DOWN 0
+#define ALL_P_MUTATION_UP 25
+#define P_MUTATION_DOWN 0
+#define P_MUTATION_UP 20
 using namespace std;
-int roulete(double **, double);
+int cmpfunc (const void *, const void *);
+int choice_parent(double **, double);
 void mutation(double *);
-double set_roulette(double **, double **, double *, double);
+double create_roulette(double **, double **, double *);
 void krossover(double **, double **, double **, double);
 double fun(double *);
-void puzirek(double * fitness);
 int main() {
 	double ** roulette = new double*[M];
 	double ** population = new double*[M];
@@ -32,15 +39,15 @@ int main() {
 	//Начальная популяция
 	for(int i = 0; i < M; i++)
 		for(int j = 0; j < N; j++)
-			population[i][j] = -200.15 / 15 + rand() % 401;
+			population[i][j] = POPULATION_DOWN + rand() * (POPULATION_UP - POPULATION_DOWN ) / (double)RAND_MAX;;
 	//10 поколений
 	for(int j = 0; j < 10; j++){
-		double sum = 0;
+		double roulette_sum = 0;
 		printf("Поколение %d\n", j + 1);
-		sum = set_roulette(roulette, population, fitness, sum);
+		roulette_sum = create_roulette(roulette, population, fitness);
 		//Новая популяция
 		//Кроссовер & мутация особей
-		krossover(population, new_population, roulette, sum);
+		krossover(population, new_population, roulette, roulette_sum);
 		for(int i = 0; i < M; i++){
 			for(int k = 0; k < N; k++)
 				printf("%5lf ", population[i][k]);
@@ -58,39 +65,29 @@ int main() {
 	delete []fitness;
 	return EXIT_SUCCESS;
 }
-void puzirek(double * fitness){
-	int i, kol = 1;
-	double temp;
-	while(kol > 0){
-		kol = 0;
-		for(i = 0; i < M - 1; i++){
-			if(fitness[i] > fitness[i + 1]){
-				temp = fitness[i];
-				fitness[i] = fitness[i + 1];
-				fitness[i + 1] = temp;
-				kol++;
-			}
-		}
-	}
-}
 double fun(double * population){
 	return population[0] - population[1] + pow(population[2], 2) + population[3];
 }
-double set_roulette(double ** roulette, double ** population, double * fitness, double sum){
+int cmpfunc (const void * a, const void * b){
+   return ( *(int*)a - *(int*)b );
+}
+double create_roulette(double ** roulette, double ** population, double * fitness){
+	double roulette_sum = 0;
 	//Расчет фитнесса, рулетка
 	for(int i = 0; i < M; i++){
 		fitness[i] = fun(population[i]);//Значения функции
-		sum += fitness[i];
+		roulette_sum += fitness[i];
 	}
-	puzirek(fitness); //Сортировка
+	qsort(fitness, M , sizeof(double), cmpfunc);
+	//puzirek(fitness); //Сортировка
 	//Рулетка
 	for(int i = 0; i < M; i++){
 		roulette[i][0] = fitness[i];
 		roulette[i][1] = fitness[i + 1];
 	}
-	return sum;
+	return roulette_sum;
 }
-int roulete(double ** roulette, double x){
+int choice_parent(double ** roulette, double x){
 	//Рулетка
 	for(int i = 0; i < M; i++)
 		if((x >= roulette[i][0]) && (x < roulette[i][1]))
@@ -99,10 +96,10 @@ int roulete(double ** roulette, double x){
 }
 void mutation(double * population){
 	int all_p_mutation = rand() % 100; //Вероятность мутации особи
-	if((all_p_mutation > 0) && (all_p_mutation <= 25)){
+	if((all_p_mutation > ALL_P_MUTATION_DOWN) && (all_p_mutation <= ALL_P_MUTATION_UP)){
 		for(int b = 0; b < N; b++){
 			int p_mutation = rand() % 100; //Вероятность мутации гена
-			if((p_mutation > 0) && (p_mutation <= 20)){
+			if((p_mutation > P_MUTATION_DOWN) && (p_mutation <= P_MUTATION_UP)){
 				double a = (population[b] - population[b] * 5 / 100.0);
 				double c = (population[b] + population[b] * 5 / 100.0);
 				if(a < c)
@@ -113,31 +110,59 @@ void mutation(double * population){
 		}
 	}
 }
-void krossover(double ** population, double ** new_population, double ** roulette, double sum){
+void krossover(double ** population, double ** new_population, double ** roulette, double roulette_sum){
 	for(int g = 0; g < M; g += 2){
-		int x_dad = rand() % int(sum), x_mom = rand() % int(sum), dad = roulete(roulette, x_dad), mom = roulete(roulette, x_mom);
+		int x_dad = rand() % int(roulette_sum), x_mom = rand() % int(roulette_sum), dad = choice_parent(roulette, x_dad), mom = choice_parent(roulette, x_mom), krossover_variant;
 		double parents[2][N], child[2][N];
+		krossover_variant = rand() % 3;
 		for(int b = 0; b < N; b++){
 			parents[0][b] = population[dad][b];
 			parents[1][b] = population[mom][b];
 		}
-		for(int b = 0; b < N / 2; b++){
-			child[0][b] = parents[1][b];
-			child[1][b] = parents[0][b];
-		}
-		for(int b = N / 2; b < N; b++){
-			child[0][b] = parents[0][b];
-			child[1][b] = parents[1][b];
+		switch (krossover_variant){
+		case 0:
+			//Гены распределяются потомству пополам
+			for(int b = 0; b < N / 2; b++){
+				child[0][b] = parents[1][b];
+				child[1][b] = parents[0][b];
+			}
+			for(int b = N / 2; b < N; b++){
+				child[0][b] = parents[0][b];
+				child[1][b] = parents[1][b];
+			}
+			break;
+		case 1:
+			//Гены чередуются
+			for(int b = 0; b < N; b += 2){
+				child[0][b] = parents[0][b];
+				child[1][b] = parents[1][b];
+			}
+			for(int b = 1; b < N; b += 2){
+				child[0][b] = parents[1][b];
+				child[1][b] = parents[0][b];
+			}
+			break;
+		case 2:
+			//Точка раздела геннов задается случайным образом
+			int point_division = rand() % N;
+			for(int b = 0; b < point_division; b++){
+				child[0][b] = parents[0][b];
+				child[1][b] = parents[1][b];
+			}
+			for(int b = point_division; b < N; b++){
+				child[0][b] = parents[1][b];
+				child[1][b] = parents[0][b];
+			}
+			break;
 		}
 		for(int i = 0; i < 2; i++)
 			mutation(child[i]);
-
 		for(int i = 0; i < N; i++){
 			new_population[g][i] = child[0][i];
 			new_population[g + 1][i] = child[1][i];
 		}
-	}
 	for(int i = 0; i < M; i++)
 		for(int k = 0; k < N; k++)
 			population[i][k] = new_population[i][k];
+	}
 }
