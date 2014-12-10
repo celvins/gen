@@ -79,7 +79,7 @@ double create_roulette(double ** roulette, double ** population, double * fitnes
 		roulette_sum += fitness[i];
 	}
 	qsort(fitness, M , sizeof(double), cmpfunc);
-	//puzirek(fitness); //Сортировка
+	//Сортировка
 	//Рулетка
 	for(int i = 0; i < M; i++){
 		roulette[i][0] = fitness[i];
@@ -132,15 +132,21 @@ void krossover(double ** population, double ** new_population, double ** roulett
 			}
 			break;
 		case 1:
-			//Гены чередуются
-			for(int b = 0; b < N; b += 2){
-				child[0][b] = parents[0][b];
-				child[1][b] = parents[1][b];
+			//Гены чередуются ???????
+			for(int b = 0; b < N; b ++){
+				if (b % 2 == 0){
+					child[0][b] = parents[0][b];
+					child[1][b] = parents[1][b];
+				}
+				else{
+					child[0][b] = parents[1][b];
+					child[1][b] = parents[0][b];
+				}
 			}
-			for(int b = 1; b < N; b += 2){
-				child[0][b] = parents[1][b];
-				child[1][b] = parents[0][b];
-			}
+//			for(int b = 1; b < N; b += 2){
+//				child[0][b] = parents[1][b];
+//				child[1][b] = parents[0][b];
+//			}
 			break;
 		case 2:
 			//Точка раздела геннов задается случайным образом
