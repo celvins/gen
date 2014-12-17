@@ -1,19 +1,16 @@
 //============================================================================
-// Name        : test.cpp
-// Author      : 
+// Name        : test2.cpp
+// Author      : Vardanyan Andranik
 // Version     :
 // Copyright   : Your copyright notice
 // Description : Hello World in C++, Ansi-style
 //============================================================================
 
 #include <iostream>
+#include "fosfitkinetika.h"
 #include <math.h>
-#include <time.h>
-#include <stdlib.h>
-#define N 4
-#define M 100
-#define POPULATION_DOWN -200
-#define POPULATION_UP 400
+#define N 5
+#define M 10
 #define ALL_P_MUTATION_DOWN 0
 #define ALL_P_MUTATION_UP 25
 #define P_MUTATION_DOWN 0
@@ -24,12 +21,26 @@ int choice_parent(double **, double);
 void mutation(double *);
 double create_roulette(double **, double **, double *);
 void krossover(double **, double **, double **, double);
-double fun(double *);
-int main() {
+int main(){
+	FILE *file;
+	if(((file = fopen("gran.txt", "r"))) == 0){
+		printf("Error file");
+	}
 	double ** roulette = new double*[M];
 	double ** population = new double*[M];
 	double ** new_population = new double*[M];
 	double * fitness = new double[M];
+	double gran[N][4];
+	//gran.txt
+	/*
+	 * границы мин макс для генов каждой популяции
+	 */
+	for(int i = 0; i < N; i++){
+		for(int j = 0; j < 4; j++){
+			fscanf(file, "%lf", &gran[i][j]);
+		}
+	}
+	fclose(file);
 	for(int i = 0; i < M; i++){
 		population[i] = new double[N];
 		new_population[i] = new double[N];
@@ -37,22 +48,25 @@ int main() {
 	}
 	srand(time(0));
 	//Начальная популяция
-	for(int i = 0; i < M; i++)
+	for(int i = 0; i < M; i++){
 		for(int j = 0; j < N; j++)
-			population[i][j] = POPULATION_DOWN + rand() * (POPULATION_UP - POPULATION_DOWN ) / (double)RAND_MAX;;
-	//10 поколений
-	for(int j = 0; j < 10; j++){
-		double roulette_sum = 0;
+			population[i][j] = gran[j][0] * pow(10,gran[j][1]) + rand() * (gran[j][2] * pow(10,gran[j][3]) - gran[j][0] * pow(10,gran[j][1])) /(double)RAND_MAX;
+	}
+	/*
+	 *	соединить файл fosfit_kinetika
+	 *	посчитать фитнесс через файл
+	 */
+
+	for(int j = 0; j < 2; j++){
 		printf("Поколение %d\n", j + 1);
-		roulette_sum = create_roulette(roulette, population, fitness);
-		//Новая популяция
-		//Кроссовер & мутация особей
-		krossover(population, new_population, roulette, roulette_sum);
 		for(int i = 0; i < M; i++){
 			for(int k = 0; k < N; k++)
-				printf("%5lf ", population[i][k]);
+				printf("%5.25lf ", population[i][k]);
 			printf("\n");
 		}
+		double roulette_sum = 0;
+		roulette_sum = create_roulette(roulette, population, fitness);
+		krossover(population, new_population, roulette, roulette_sum);
 	}
 	for(int i = 0; i < M; i++){
 		delete []population[i];
@@ -75,11 +89,10 @@ double create_roulette(double ** roulette, double ** population, double * fitnes
 	double roulette_sum = 0;
 	//Расчет фитнесса, рулетка
 	for(int i = 0; i < M; i++){
-		fitness[i] = fun(population[i]);//Значения функции
+		fitness[i] = F_SUM(population[i]);//Значения функции
 		roulette_sum += fitness[i];
 	}
 	qsort(fitness, M , sizeof(double), cmpfunc);
-	//Сортировка
 	//Рулетка
 	for(int i = 0; i < M; i++){
 		roulette[i][0] = fitness[i];
@@ -92,7 +105,7 @@ int choice_parent(double ** roulette, double x){
 	for(int i = 0; i < M; i++)
 		if((x >= roulette[i][0]) && (x < roulette[i][1]))
 			return i;
-	return false;
+	return 0;
 }
 void mutation(double * population){
 	int all_p_mutation = rand() % 100; //Вероятность мутации особи
@@ -132,21 +145,17 @@ void krossover(double ** population, double ** new_population, double ** roulett
 			}
 			break;
 		case 1:
-			//Гены чередуются ???????
-			for(int b = 0; b < N; b ++){
-				if (b % 2 == 0){
+			//Гены чередуются
+			for(int b = 0; b < N; b++){
+				if(b % 2 == 0){
 					child[0][b] = parents[0][b];
 					child[1][b] = parents[1][b];
 				}
-				else{
-					child[0][b] = parents[1][b];
+				else {
 					child[1][b] = parents[0][b];
+					child[0][b] = parents[1][b];
 				}
 			}
-//			for(int b = 1; b < N; b += 2){
-//				child[0][b] = parents[1][b];
-//				child[1][b] = parents[0][b];
-//			}
 			break;
 		case 2:
 			//Точка раздела геннов задается случайным образом
@@ -167,8 +176,8 @@ void krossover(double ** population, double ** new_population, double ** roulett
 			new_population[g][i] = child[0][i];
 			new_population[g + 1][i] = child[1][i];
 		}
+	}
 	for(int i = 0; i < M; i++)
 		for(int k = 0; k < N; k++)
 			population[i][k] = new_population[i][k];
-	}
 }
